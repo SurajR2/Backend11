@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./db-config");
-// const { signupValidation, loginValidation } = require("./controllers/validation");
-// const { validationResult } = require("express-validator");
+ //const { signupValidation, loginValidation } = require("./controllers/validation");
+//const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 

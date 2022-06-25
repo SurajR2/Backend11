@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const db = require("../db-config");
 const bcrypt = require("bcrypt");
-const { response } = require("express");
+const { response }  = require("express");
 
 const login = async (req,res)=> {
     const {email,password}=req.body;
@@ -11,10 +11,10 @@ const login = async (req,res)=> {
             if(err) throw err;
             if(result.length || bycrypt.compare(password.result[0].password)) return response.json({status:"error",error:"Incorrect email or password"});
             else {
-                const token=jwt.sign({id:result[0].id},process.env.JWT_TOKEN, {
+                const token = jwt.sign({id:result[0].id},process.env.JWT_TOKEN, {
                     expiresIn:process.env.JWT_EXPIRES
                 })
-                const CookieOptions={
+                const CookieOptions = {
                     expiresIn:new Date(Date.now() +process.env.COOKIE_EXPIRES*24* 60*60*1000),
                     httpOnly:true
 

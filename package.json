@@ -1,7 +1,7 @@
 {
   "name": "vs-code",
   "version": "1.0.0",
-  "description": "API developnment and test ",
+  "description": "project 0 nec.edu.np ",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,9 +9,9 @@
   },
   "keywords": [
     "API",
-    "test"
+    "Project0"
   ],
-  "author": "Atit",
+  "author": "Subarna aka Atit",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.0.1",
