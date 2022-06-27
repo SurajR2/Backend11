@@ -1,130 +1,63 @@
 const express = require("express");
-const router = express.Router();
+var bodyParser = require("body-parser");
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 const db = require("./db-config");
- //const { signupValidation, loginValidation } = require("./controllers/validation");
-//const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { response, request } = require("express");
 
-router.get("/login", (req, res) => {
-    res.send({  message: "Hello"});
+app.get("/login", (req, res) => {
+    res.send({ message: "Hello" });
 });
-
-router.post("/register", (req, res, next) => {
-  db.query(
-    `SELECT * FROM users WHERE LOWER(email) = LOWER(${db.escape(
-      req.body.email
-    )});`,
-    (err, result) => {
-      if (result.length) {
-        return res.status(409).send({
-          msg: "This user is already in use!",
-        });
-      } else {
-        // username is available
-        bcrypt.hash(req.body.password, 10, (err, hash) => {
-          if (err) {
-            return res.status(500).send({
-              msg: err,
-            });
-          } else {
-            // has hashed pw => add to database
-            db.query(
-              `INSERT INTO users (name, email, password) VALUES ('${
-                req.body.name
-              }', ${db.escape(req.body.email)}, ${db.escape(hash)})`,
-              (err, result) => {
-                if (err) {
-                  throw err;
-                  return res.status(400).send({
-                    msg: err,
-                  });
+app.post("/login", function (request, response) {
+    // Capture the input fields
+    let email = request.body.email;
+    let password = request.body.password;
+    let username = request.body.username;
+    // Ensure the input fields exists and are not empty
+    console.log(request.body);
+    if (email && password) {
+        // Execute SQL query that'll select the account from the database based on the specified email and password
+        db.query(
+            "SELECT email, password FROM users WHERE email = ? AND password = ?",
+            [email, password],
+            function (error, results, fields) {
+                // If there is an issue with the query, output the error
+                if (error) throw error;
+                // If the account exists
+                if (results.length > 0) {
+                    // Authenticate the user
+                    response.send("Logged in successfully");
+                } else {
+                    response.send("Incorrect email and/or password!");
                 }
-                return res.status(201).send({
-                  msg: "The user has been registerd with us!",
-                });
-              }
-            );
-          }
-        });
-      }
+                response.end();
+            }
+        );
+    } else {
+        response.send("Please enter email and password!");
+        response.end();
     }
-  );
 });
-router.post("/login", (req, res, next) => {
-  db.query(
-    `SELECT * FROM users WHERE email = ${db.escape(req.body.email)};`,
-    (err, result) => {
-      // user does not exists
-      if (err) {
-        throw err;
-        return res.status(400).send({
-          msg: err,
-        });
-      }
-      if (!result.length) {
-        return res.status(401).send({
-          msg: "Email or password is incorrect!",
-        });
-      }
-      // check password
-      bcrypt.compare(
-        req.body.password,
-        result[0]["password"],
-        (bErr, bResult) => {
-          // wrong password
-          if (bErr) {
-            throw bErr;
-            return res.status(401).send({
-              msg: "Email or password is incorrect!",
-            });
-          }
-          if (bResult) {
-            const token = jwt.sign(
-              { id: result[0].id },
-              "the-super-strong-secrect",
-              { expiresIn: "1h" }
-            );
-            db.query(
-              `UPDATE users SET last_login = now() WHERE id = '${result[0].id}'`
-            );
-            return res.status(200).send({
-              msg: "Logged in!",
-              token,
-              user: result[0],
-            });
-          }
-          return res.status(401).send({
-            msg: "Username or password is incorrect!",
-          });
-        }
-      );
-    }
-  );
-});
-router.get("/get-user", (req, res, next) => {
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer") ||
-    !req.headers.authorization.split(" ")[1]
-  ) {
-    return res.status(422).json({
-      message: "Please provide the token",
-    });
-  }
-  const theToken = req.headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(theToken, "the-super-strong-secrect");
-  db.query(
-    "SELECT * FROM users where id=?",
-    decoded.id,
-    function (error, results, fields) {
-      if (error) throw error;
-      return res.send({
-        error: false,
-        data: results[0],
-        message: "Fetch Successfully.",
-      });
-    }
-  );
-});
-module.exports = router;
+
+// app.post("/login", (req, res) => {
+//     var email = request.body.email;
+//     var password = request.body.password;
+//     db.query(
+//         "SELECT email, password FROM userlogin where email = ? and password =? ",
+//         [email, password],
+//         function (error, results, fields) {
+//             if (error) throw error;
+//             if (results.length > 0) {
+//                 req.session.loggedin = true;
+//                 req.session.email = email;
+//                 return res.status(200).send({
+//                     msg: "Logged in successfully",
+//                 });
+//             }
+//         }
+//     );
+// });
+module.exports = app;
