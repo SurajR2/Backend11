@@ -29,9 +29,11 @@ app.post("/login", function (request, response) {
                 // If the account exists
                 if (results.length > 0) {
                     // Authenticate the user
-                    response.send("Logged in successfully");
+                    response.status(200).send("Logged in successfully");
                 } else {
-                    response.send("Incorrect email and/or password!");
+                    response
+                        .status(201)
+                        .send("Incorrect email and/or password!");
                 }
                 response.end();
             }
