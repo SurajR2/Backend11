@@ -7,58 +7,92 @@ const db = require("./db-config");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { response, request, query } = require("express");
+const e = require("express");
 
+app.get("/",(res)=>{
+    res.send({message:"api is working"})
+})
 app.get("/login", (req, res) => {
     res.send({ message: "Hello" });
 });
+
 app.get("/register", (req, res) => {
     res.send({ message: "working" });
 });
+
 app.post("/register", function (request, response) {
     let fullname = request.body.fullname;
     let username = request.body.username;
     let email = request.body.email;
     let password = request.body.password;
-    db.query(
-        "insert into register_user(fullname,username,email, password) values (?,?,?,?)",
-        [fullname, username, email, password],
-        function (err, result) {
-            if (err) {
+    db.query("SELECT COUNT(*) AS cnt FROM users WHERE email = ? " , 
+
+    request.body.email ,(err , data)=>{
+   if(err){
+       console.log(err);
+   }   
+   else{
+       if(data[0].cnt > 0){  
+        response.status(409).send("sorry email already in use");
+    }else{
+       bcrypt.hash(password,10, (err,hash)=>{
+        if (err){
+            return res.status(500).send({msg:err,});
+        }
+        else{
+        db.query(
+            "insert into users(fullname,username,email, password) values (?,?,?,?)",
+            [fullname, username, email, hash], 
+            function(err , result){
+               if(err){
                 console.log(err);
-            } else {
+               }else{
                 console.log(result);
                 response.status(200).send("registered successfully");
-            }
-            response.end();
-        }
-    );
-    console.log(request.body);
+               }
+               response.end();
+           })
+        }   
+       })              
+       }
+   }
+})
 });
 app.post("/login", function (request, response) {
-    // Capture the input fields
     let email = request.body.email;
     let password = request.body.password;
-    // Ensure the input fields exists and are not empty
     console.log(request.body);
     if (email && password) {
-        // Execute SQL query that'll select the account from the database based on the specified email and password
         db.query(
-            "SELECT email, password FROM register_user WHERE email = ? AND password = ?",
-            [email, password],
-            function (error, results, fields) {
-                // If there is an issue with the query, output the error
-                if (error) throw error;
-                // If the account exists
-                if (results.length > 0) {
-                    // Authenticate the user
-                    response.status(200).send("Logged in successfully");
-                } else {
-                    response
-                        .status(201)
-                        .send("Incorrect email and/or password!");
+            "SELECT email FROM users WHERE email = ?",
+            [email],
+            (err,result)=>{
+                if (err)throw err;
+                if(result.length > 0){
+                    let hashedPassword = bcrypt.hashSync(password,10);
+                    bcrypt.compare(password,hashedPassword,function(err,result){
+                if(result){
+                    response.status(200).send("logged in sucessfully")
+                }else{
+                    response.status(201).send(`${err}: incorrect password`); 
                 }
-                response.end();
-            }
+            })
+        }
+        else{
+            response.status(201).send(`${err}: Incorrect email`);
+        }
+            // (error, results)=> {
+            //     if (error) throw error;
+            //     if (results.length > 0) {
+            //         response.status(200).send("Logged in successfully");
+            //     } else {
+            //         response
+            //             .status(201)
+            //             .send("Incorrect email and/or password!");
+            //     }
+            //     response.end();
+            // }
+        }
         );
     } else {
         response.send("Please enter email and password!");

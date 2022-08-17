@@ -11,6 +11,6 @@ const db = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "",
-    database: "registration",
+    database: "register_user",
 });
 module.exports = db;
