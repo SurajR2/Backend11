@@ -4,6 +4,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const db = require("./db-config");
+const{signupValidation,loginValidation} = require("./validation")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { response, request, query } = require("express");
@@ -20,7 +21,7 @@ app.get("/register", (req, res) => {
     res.send({ message: "working" });
 });
 
-app.post("/register", function (request, response) {
+app.post("/register", signupValidation,function (request, response) {
     let fullname = request.body.fullname;
     let username = request.body.username;
     let email = request.body.email;
@@ -58,7 +59,7 @@ app.post("/register", function (request, response) {
    }
 })
 });
-app.post("/login", function (request, response) {
+app.post("/login", loginValidation,function (request, response) {
     let email = request.body.email;
     let password = request.body.password;
     console.log(request.body);
@@ -72,7 +73,9 @@ app.post("/login", function (request, response) {
                     let hashedPassword = bcrypt.hashSync(password,10);
                     bcrypt.compare(password,hashedPassword,function(err,result){
                 if(result){
-                    response.status(200).send("logged in sucessfully")
+                    const token = jwt.sign({email},'the-super-strong-secrect',{ expiresIn: '2d' });
+
+                    response.status(200).send({"msg":"logged in sucessfully","token":token}); 
                 }else{
                     response.status(201).send(`${err}: incorrect password`); 
                 }
