@@ -1,62 +1,71 @@
-db.query("SELECT COUNT(*) AS cnt FROM user_registration WHERE email = ? " , 
-req.body.email , function(err , data){
-   if(err){
-       console.log(err);
-   }   
-   else{
-       if(data[0].cnt > 0){  
-        response
-                        .status(409)
-                        .send("sorry email already in use");
-             
-       }else{
-        db.query(
-            "insert into register_user(fullname,username,email, password) values (?,?,?,?)",
-            [fullname, username, email, password], 
-            function(err , insert){
-               if(err){
-                console.log(err);
-               }else{
-                console.log(result);
-                response.status(200).send("registered successfully");
-               }
-               response.end();
-           })                  
-       }
-   }
-})// const db = require("./db-config");
+const db = require("./db-config");
+const express = require("express");
+const { json } = require("body-parser");
+const app = express();
+const path = require("path");
+app.use(express.json());
+const fs = require("fs");
 
-// app.post("/register", function (request, response) {
-//     let fullname = request.body.fullname;
-//     let username = request.body.username;
-//     let email = request.body.email;
-//     let password = request.body.password;
-//     db.query(
-//         "select * from register_user where email=request.body.email",(err, res) => {
-//             if (result.length) {
-//                 return res.status(409).send({
-//                 msg: 'This user is already in use!'
+const files = fs.readdirSync(`${__dirname}/static/pdf`); // get the names of all files in the foler
+console.log(__dirname);
+ for(file of files ){
+    // console.log(file);
+        
+    let fullpath=path.join(`${__dirname}/static/pdf/${file}`);
+    console.log(fullpath);
+    setTimeout(()=>{
+        // db.query(`insert into books (book_id, book_name,path, book_semester_id) values ('','${file}','${fullpath}',1)`);
+        console.log(`insert into books (book_id, book_name,path, book_semester_id) values ('','${file}','${fullpath}',1)`)
+    },150);
+ }
+
+let url = "file:///D:/test/Backend11/"
+var filePath = "/static/pdf";
+db.query(`select path from books where book_name='Database'`,
+(err,res)=>{
+    const result = Object.values(JSON.parse(JSON.stringify(res)));
+    result.forEach((index)=>{
+        
+        // console.log(index.path) 
+    let file_url= `${url+index.path}`;
+    console.log(file_url);
+    }
+    );
+}
+);
 
 
-//         } else{
-//             db.query(
-//                 "insert into register_user(fullname,username,email, password) values (?,?,?,?)",
-//                 [fullname, username, email, password],
-//                 function (err, result) {
-//                     if (err) {
-//                         console.log(err);
-//                          }
-//                           else {
-//                         console.log(result);
-//                         response.status(200).send("registered successfully");
-//                     }
-//                     response.end();
-//                 }
-//             );
-//             console.log(request.body);
-//         });
 
-//         }
-//     }
-//     } )
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const semesters = { 
+//     1:"first",
+//     2:"second",
+//     3:"third",
+//     4:"fourth",
+//     5:"fifth",
+//     6:"sixth",
+//     7:"seventh",
+//     8:"eighth",
+// }
+
+// Object.entries(semesters).forEach(([key,value])=>{
+//     console.log(key,value);
+
+//         db.query(`insert into semesters (semester_id , semester_name) values (${key},'${value}')`);
+
+// })
