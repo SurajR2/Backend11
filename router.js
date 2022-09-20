@@ -11,9 +11,11 @@ const jwt = require("jsonwebtoken");
 var randtoken = require('rand-token');
 const fs= require("fs");
 var nodemailer = require('nodemailer');
-const { reset } = require("nodemon");
+const fileUpload = require("express-fileupload");
 flash=require('express-flash');
 const serveIndex = require('serve-index');
+const { application } = require("express");
+app.use( fileUpload());
 
 app.get("/",(res)=>{
     res.send({message:"api is working"})
@@ -274,8 +276,63 @@ async function sendEmail(email, token) {
         });
     });
 
-    app.use('/ftp', express.static("static"),serveIndex("static"));
+    
+            app.post("/upload",(request,response)=>{
+        
+            const id = request.body.id;
+            const pdf = request.files.uploadfile;
+            console.log(pdf);
+            const filename = pdf.name;
+            if(!pdf)return response.status(400).send("No File Uploaded ");
+            // if( !id)return response.status(400).status("please enter semester id ");
+                console.log(pdf);
+                const semesters = {
+                    1: "first sem",
+                    2: "second sem",
+                    3: "third sem",
+                    4: "fourth sem",
+                    5: "fifth sem",
+                    6: "sixth sem",
+                    7: "seventh sem",
+                    8: "eight sem",
+                  };
+                  Object.entries(semesters).forEach(([key,value])=> {
+                    if(id!==key) return;
+                    let path =`${value}/${filename}`;
+                    pdf.mv(`./static/${value}/${filename}`,(err)=>
+                        {
+                            
+                            if(err)
+                            {
+                                response.send(err);
+                            }
+                            else
+                            {
+                            response.send({status:"sucess",msg:"sucessfully moved",path:path});
+                            db.query(
+                                "insert into books(book_id,book_name,path,book_semester_id) values(?,?,?,?)",["",filename,path,id],
+                            (res)=>{
+                
+                        
+                                    console.log("sucesufully added into the database");
+                                    return res.send({status:"sucess",msg:"sucessufully added to the database"});
+                                                }
+                            
+                            )
+                            }
+                    })
+                  });
+                
 
+            }
+
+            );
+
+    
+    
+    
+
+    
 
 module.exports = app;
  
