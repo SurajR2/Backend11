@@ -7,6 +7,8 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api", router);
-app.listen(3000, () =>
-    console.log("Server is running at: http://localhost:3000 ")
+app.use(express.static("./CollegeProject/dist"));
+
+app.listen(8000, () =>
+  console.log("Server is running at: http://localhost:8000 ")
 );
