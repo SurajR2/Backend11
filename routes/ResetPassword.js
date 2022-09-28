@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-router.get("/resetpassword/:id/:token", (req, res) => {
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+var randtoken = require("rand-token");
+
+router.get("/", (req, res) => {
   const { id, token } = req.params;
   // res.send(req.params);
 
@@ -29,7 +33,7 @@ router.get("/resetpassword/:id/:token", (req, res) => {
   });
 });
 
-router.post("/resetpassword/:id/:token", (req, res) => {
+router.post("/", (req, res) => {
   const { id, token } = req.params;
   // res.send(user);
 
