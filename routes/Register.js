@@ -1,9 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
+const db = require("../db-config");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 router.get("/", (req, res) => {
-  res.send({ message: "working" });
+  res.send({ message: "register" });
 });
 
 router.post(
