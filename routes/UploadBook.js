@@ -2,7 +2,8 @@ const express = require("express");
 const db = require("../db-config");
 const router = express.Router();
 const fileUpload = require("express-fileupload");
-const fs = require("fs");
+// const fs = require("fs");
+const path = require("path");
 
 router.use(fileUpload());
 
@@ -11,6 +12,12 @@ router.post("/", (request, response) => {
   const pdf = request.files.file;
   console.log(pdf);
   const filename = pdf.name;
+  const extensionName = path.extname(filename);
+  const allowedExtension = ['.pdf'];
+
+  if(!allowedExtension.includes(extensionName)){
+    return response.status(422).send("Only pdf files can be uploaded");
+}
   if (!pdf) return response.status(400).send("No File Uploaded ");
   console.log(pdf);
   const semesters = {

@@ -47,17 +47,8 @@ router.post(
                   const token = jwt.sign({ email }, process.env.JWT_TOKEN, {
                     expiresIn: process.env.JWT_EXPIRES,
                   });
-                  const refreshToken = jwt.sign(
-                    { email },
-                    "refresh_token_secret",
-                    { expiresIn: "1d" }
-                  );
-                  response.cookie("jwt", refreshToken, {
-                    httpOnly: true,
-                    sameSite: "None",
-                    secure: true,
-                    maxAge: 3 * 24 * 60 * 60 * 1000,
-                  });
+                  
+                
                   return response.json(token);
                 } else {
                   response.status(201).send(`${err}: incorrect password`);
@@ -65,7 +56,7 @@ router.post(
               }
             );
           } else {
-            response.status(201).send(`${err}: Incorrect email`);
+            response.status(201).send(`Incorrect email`);
           }
         }
       );

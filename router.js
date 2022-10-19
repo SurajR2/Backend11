@@ -6,7 +6,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const db = require("./db-config");
 require("dotenv").config();
 flash = require("express-flash");
-const serveIndex = require("serve-index");
+const serveIndex = require("serve-index"); 
 
 const ForgotPasswordRoute = require("./routes/ForgotPassword");
 const LoginRoute = require("./routes/Login");
@@ -14,6 +14,9 @@ const registerRoute = require("./routes/Register");
 const getBooks = require("./routes/GetBooks");
 const searchBook = require("./routes/SearchBook");
 const uploadBook = require("./routes/UploadBook");
+const resetPassword = require("./routes/ResetPassword"); 
+const auth = require("./middleware");
+
 
 app.use(flash());
 app.get("/", (req, res) => {
@@ -23,9 +26,9 @@ app.get("/", (req, res) => {
 app.use("/register", registerRoute);
 app.use("/login", LoginRoute);
 app.use("/forgotpassword", ForgotPasswordRoute);
-app.use("/getBook", getBooks);
-app.use("/searchBook", searchBook);
-app.use("/upload", uploadBook);
+app.use("/getBook", auth , getBooks);
+app.use("/searchBook", auth ,searchBook);
+app.use("/upload", auth ,uploadBook);
 app.use(express.static("static"), serveIndex("static", { icons: true }));
 
 app.get("/logout", function (req, res) {

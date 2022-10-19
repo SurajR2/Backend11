@@ -1,15 +1,35 @@
 const express = require("express");
 const router = express.Router();
-router.get("/resetpassword/:id/:token", (req, res) => {
-  const { id, token } = req.params;
-  // res.send(req.params);
+const jwt = require("jsonwebtoken");
 
-  db.query(`SELECT * FROM users WHERE id=${id} `, function (err, result) {
-    if (err) {
-      console.log("something went wrong: " + err.message);
+
+const securepassword = async(password)=>{
+  try
+  {
+      const hashedpassword = await bcrypt.hash(password,10);
+      return hashedpassword;
+
+  }
+   catch (error)
+    {
+
+     res.staus(400).send(error.message);
+
     }
 
-    console.log(result[0]);
+}
+router.post("/", async  (req, res) => {
+  const { id, token } = req.params;
+  
+  // res.send(req.params);}
+
+  db.query('SELECT * FROM users WHERE id ="' + id + '"', async (err, result) => {
+    if (err) {
+      console.log("something went wrong: " + err.message);
+      res.end();
+    }
+
+    console.log(result);
     //Verifying The Token(Id is Exists In Database or not)
     if (id != result[0].id) {
       res.send("Invalid Id");
@@ -17,87 +37,59 @@ router.get("/resetpassword/:id/:token", (req, res) => {
     }
 
     //if valid user and id
-    const secret = process.env.JWT_TOKEN + result[0].id;
+    const secret = process.env.JWT_TOKEN + result[0].password;
     try {
-      const payload = jwt.verify(token, secret); //If JWT verify failed to verify catch black Will be executed
-      // console.log(payload);
-      res.render("resetpassword", { email: result[0].email });
+      const { password, confirmpassword } = req.body;
+
+      const payload = jwt.verify(token, secret);
+      console.log("log after token validated");
+      //If JWT verify failed to verify catch black Will be executed
+      //validating password
+      console.log("log before password length");
+      if (password & (password.length < 1)) {
+        console.log("password cannot be blank");
+        res.send.status(201).send("password cannot be blank");
+      }
+
+      if (password.length < 6) {
+        console.log("password length must be 6 characters");
+        res
+          .status(201)
+          .send("password length must be  at least 6 characters");
+      }
+      if (confirmpassword & (confirmpassword.length < 1)) {
+        console.log("confirmpassword cannot be blank");
+        res.status(201).send("confirmpassword cannot be blank");
+      }
+
+      console.log("log before compare password and confirmpassword");
+      if (password != confirmpassword) {
+        console.log("password and confirm passwoord do not match");
+        res.status(201).send("password and confirm passwoords do not match");
+      }
+      //   
+      var spassword = await securepassword(password);
+      //finding user with email  and id and updating password
+     
+      db.query(`UPDATE users SET password=? WHERE id=${result[0].id}`,
+        [spassword],
+        async (err, result) => {
+          if (result) {
+            console.log("password has been updated successfully");
+            res.status(200).send("password has been updated successfully");
+            res.end();
+          }
+        }
+      );
+
+      
     } catch (error) {
       console.log(error.message);
-      res.send(error.message + "Make Another Request");
+      res.send(error.message + " Make Another Request");
     }
   });
 });
 
-router.post("/resetpassword/:id/:token", (req, res) => {
-  const { id, token } = req.params;
-  // res.send(user);
 
-  const { password, confirmpassword } = req.body;
-  db.query(
-    'SELECT * FROM users WHERE id ="' + id + '"',
-    function (err, result) {
-      if (err) throw err;
-      console.log(id);
-      console.log(result[0].id);
-      if (id != result[0].id) {
-        res.send("Invalid Id");
-        return;
-      }
-
-      //Validating Token
-      const secret = process.env.JWT_SECRET + result[0].id;
-      try {
-        const payload = jwt.verify(token, secret);
-
-        //validating password
-        if ((password = null)) {
-          console.log("password cannot be blank");
-          res.send.status(201).send("password cannot be blank");
-        }
-        if (password.length < 6) {
-          console.log("password length must be 6 characters");
-          res.send
-            .status(201)
-            .send("password length must be  at least 6 characters");
-        }
-
-        if (confirmpassword == null) {
-          console.log("confirmpassword cannot be blank");
-          res.status(201).send("confirmpassword cannot be blank");
-        }
-        if (password == confirmpassword) {
-          console.log("password and confirm passwoord do not match");
-          res.status(201).send("password and confirm passwoords do not match");
-        }
-        var saltRounds = 10;
-        // var hash = bcrypt.hash(password, saltRounds);
-        bcrypt.genSalt(saltRounds, (err, salt) => {
-          bcrypt.hash(password, salt, (err, hash) => {
-            var data = {
-              password: hash,
-            };
-          });
-        });
-
-        //finding user with email  and id and updating password
-        db.query(
-          `UPDATE users SET ? WHERE id=${result[0].id}`,
-          [data],
-          (res) => {
-            console.log("password has been updated successfully");
-            res.status("200").send("password has been updated successfully");
-          }
-        );
-        //Hashing The Password
-        // res.send(user);
-        res.send("Password Updated Successfully");
-      } catch (error) {
-        console.log(error.message);
-        res.send(error.message);
-      }
-    }
-  );
-});
 
 module.exports = router;
