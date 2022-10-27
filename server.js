@@ -4,7 +4,11 @@ const path = require("path");
 const cors = require("cors");
 const router = require("./router");
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:1234", optionsSuccessStatus: 200 }));
+app.options(
+  "*",
+  cors({ origin: "http://localhost:1234", optionsSuccessStatus: 200 })
+);
 
 app.use("/api", router);
 app.use(express.static("./CollegeProject/dist"));

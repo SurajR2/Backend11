@@ -11,8 +11,8 @@ router.get("/:id", (req, res) => {
       const result = Object.values(JSON.parse(JSON.stringify(fileInfo)));
       if (err) throw err;
       console.log(result);
-
       res.send(result);
+      return;
     }
   );
 });

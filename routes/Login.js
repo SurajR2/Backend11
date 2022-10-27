@@ -26,9 +26,6 @@ router.post(
     }
     const { email, password } = request.body;
     console.log(request.body);
-    // let email = request.body.email;
-    // let password = request.body.password;
-    console.log(request.body);
     if (email && password) {
       db.query(
         "SELECT * FROM users WHERE email = ?",
@@ -37,31 +34,25 @@ router.post(
           if (err) throw err;
           if (result.length > 0) {
             let hashedPassword = result[0].password;
-            console.log(hashedPassword);
-            console.log(await bcrypt.compare(password, hashedPassword));
-            await bcrypt.compare(
-              password,
-              hashedPassword,
-              function (err, result) {
-                if (result) {
-                  const token = jwt.sign({ email }, process.env.JWT_TOKEN, {
-                    expiresIn: process.env.JWT_EXPIRES,
-                  });
-                  
-                
-                  return response.json(token);
-                } else {
-                  response.status(201).send(`${err}: incorrect password`);
-                }
+            let id = result[0].id;
+            bcrypt.compare(password, hashedPassword, function (err, result) {
+              if (result) {
+                const token = jwt.sign({ id, email }, process.env.JWT_TOKEN, {
+                  expiresIn: process.env.JWT_EXPIRES,
+                });
+                return response.status(200).json({ accessToken: token });
+              } else {
+                console.log(err);
+                response.status(201).send({ error: `incorrect password` });
               }
-            );
+            });
           } else {
-            response.status(201).send(`Incorrect email`);
+            response.status(201).send({ error: `Incorrect email` });
           }
         }
       );
     } else {
-      response.send("Please enter email and password!");
+      response.send({ error: "Please enter email and password!" });
       response.end();
     }
   }
